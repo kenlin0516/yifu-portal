@@ -1,0 +1,47 @@
+
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>薪資計算（管理員）</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="card" style="max-width:820px">
+    <div class="header">
+      <div class="h1">薪資計算（僅管理員）</div>
+      <a href="index.html" class="badge">返回入口</a>
+    </div>
+    <div class="body" style="grid-template-columns:1fr">
+      <div class="panel">
+        <h2>權限檢查</h2>
+        <div id="check" class="notice">檢查中…</div>
+        <hr/>
+        <div id="content" style="display:none">
+          <p>這裡放你的薪資計算頁內容（表單、匯入/匯出、印出…）。</p>
+          <div class="row">
+            <label class="label">範例：基本薪資</label>
+            <input class="input" placeholder="輸入數字…"/>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn btn-green">試算</button>
+            <button id="logout" class="btn">登出</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    async function main(){
+      const ok = await Auth.requireAdminOrRedirect();
+      if(!ok) return;
+      document.getElementById('check').innerHTML = '<span class="success">管理員驗證通過</span>';
+      document.getElementById('content').style.display = 'block';
+    }
+    document.getElementById('logout').addEventListener('click', ()=>{ Auth.logout(); location.href='index.html'; });
+    main();
+  </script>
+</body>
+</html>
