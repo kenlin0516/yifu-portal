@@ -9,7 +9,7 @@
 
 const AUTH_CONFIG = {
   // 預設密碼（請自行修改）：admin: admin1234, user: user1234
-  adminHash: "ac9689e2272427085e35b9d3e3e8bed88cb3434828b43b86fc0596cad4c6e270", // sha256("admin1234")
+  adminHash: "0b4a4ed19f1f905520da34642869aa96931b5aa33d8ead25a23ea747818fd6aa", // sha256("zxcv0724")
   userHash:  "831c237928e6212bedaa4451a514ace3174562f6761f6a157a2fe5082b36e2fb", // sha256("user1234")
   hmacSecret: "CHANGE_ME_SECRET_please_long_random_string",  // 共享密鑰（前端可見，不安全；示範用）
   tokenTTLSeconds: 60*60*8, // 8 小時
