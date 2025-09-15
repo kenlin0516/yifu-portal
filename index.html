@@ -100,7 +100,7 @@
       const ok = await Auth.requireSignedInOrRedirect();
       if(!ok) return;
       const cur = await Auth.getCurrent();
-      const url = YIFU_TARGET;
+      const url = `${YIFU_TARGET}/sso/consume?jwt=${encodeURIComponent(cur.token)}&redirect=/`;
       location.href = url;
     });
     gotoSalary.addEventListener('click', async ()=>{
@@ -110,7 +110,7 @@
         return;
       }
       const cur2 = await Auth.getCurrent();
-      const url2 = SALARY_TARGET;
+      const url2 = `${SALARY_TARGET}/sso/consume?jwt=${encodeURIComponent(cur2.token)}&redirect=/`;
       location.href = url2;
     });
 
