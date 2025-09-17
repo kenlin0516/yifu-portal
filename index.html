@@ -1,207 +1,137 @@
-<!DOCTYPE html>
 
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>薪資計算與月明細</title>
-<link href="styles.css" rel="stylesheet"/>
-
-<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
-<link href="/favicon-32.png" rel="icon" sizes="32x32"/>
-<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-<meta content="#2ecc71" name="theme-color"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>入口｜角色登入與系統導覽</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-<header>
-<h1 class="brand"><img src="/logo-payroll.svg" alt="" class="app-logo"/> 薪資計算與月明細</h1>
-<div class="month-picker">
-<span class="muted" id="dataSource" style="margin-right:.5rem">資料來源：偵測中...</span>
-<label>受薪月份(YYYY-MM)：
-      <input id="payMonth" type="month"/>
-</label>
-<button data-tooltip="列印當月所有已建明細的員工總表" id="printMonthSummary" title="列印當月所有已建明細的員工總表">列印本月總表</button>
-<button data-tooltip="匯出所有資料(JSON) 以便備份" id="backupJsonBtn" title="匯出所有資料(JSON) 以便備份">匯出JSON</button>
-<button data-tooltip="從 JSON 匯入資料（會覆蓋同名資料）" id="restoreJsonBtn" title="從 JSON 匯入資料（會覆蓋同名資料）">匯入JSON</button>
-<input accept="application/json" id="restoreFile" style="display:none" type="file"/>
-</div>
-<div class="month-picker" style="margin-left:auto; gap:.5rem">
-<button class="ghost" data-tooltip="切換深/淺色" id="themeToggle">切換主題</button>
-</div>
-</header>
-<main>
-<aside id="employeePane">
-<div class="pane-header">
-<h2>員工清單</h2>
-<button id="btnAddEmp">新增員工</button>
-</div>
-<ul id="empList"></ul>
-</aside>
-<section id="contentPane">
-<div class="card hidden" id="empCard"></div>
-<div class="card hidden" id="payrollCard">
-<h2>薪資計算</h2>
-<div class="grid two">
-<label>員工姓名
-          <input id="calcName" readonly=""/>
-</label>
-<label>受薪月份
-          <input id="calcMonth" readonly=""/>
-</label>
-<label>底薪
-          <input id="baseSalary" step="1" type="number"/>
-</label>
-<label>全勤獎金（可調）
-          <div class="inline">
-<input id="fullAttendanceBonus" step="1" type="number" value="1800"/>
-<label class="inline-lab"><input id="isFullAttendance" type="checkbox"/> 本月全勤</label>
-</div>
-</label>
-<label>職務津貼
-          <input id="jobAllowance" step="1" type="number" value="0"/>
-</label>
-<label>技術津貼（每次100）次數
-          <input id="techCount" min="0" step="1" type="number" value="0"/>
-</label>
-<label>餐費（每日80）本月上班天數
-          <input id="workDays" max="31" min="0" step="1" type="number" value="0"/>
-</label>
-</div>
-<details class="full">
-<summary>禮拜六加班費（點我展開/收合）</summary>
-<div class="grid two" style="margin-top:.5rem">
-<label>加班天數（每天以 8 小時計）
-            <input id="satDays" min="0" step="1" type="number" value="0"/>
-</label>
-<label>時薪（自動，底薪/30/8）
-            <input id="hourlyWage" readonly="" step="1" type="number"/>
-</label>
-</div>
-<p class="muted">每一天＝時薪×(1.33×2 + 1.66×6)；總額＝天數×上述金額。</p>
-</details>
-<details class="full">
-<summary>請假與扣款（點我展開/收合）</summary>
-<div class="leave-list" id="leaveList"></div>
-<div class="actions" style="justify-content:flex-start">
-<button id="btnAddLeave" type="button">新增一筆扣款</button>
-</div>
-<template id="leaveRowTpl">
-<div class="leave-row">
-<select class="lv-type">
-<option value="婚假">婚假</option>
-<option value="病假">病假</option>
-<option value="事假">事假</option>
-<option value="喪假">喪假</option>
-<option value="颱風假">颱風假</option>
-<option value="其他">其他（自填金額）</option>
-</select>
-<input class="lv-days" min="0" placeholder="天數" step="0.5" type="number"/>
-<input class="lv-custom-label hidden" placeholder="自訂假別名稱"/>
-<input class="lv-amount hidden" min="0" placeholder="金額（元）" step="1" type="number"/>
-<button class="lv-del" type="button">移除</button>
-</div>
-</template>
-<p class="muted">婚/病/事/喪：依日薪×天數（預設 100% 扣薪）；選「其他」可自訂名稱並直接輸入金額。</p>
-</details>
-<details class="full">
-<summary>保險（簡化）</summary>
-<div class="grid four" style="margin-top:.5rem">
-<label>投保級距（自動帶入）
-            <input id="insuredBase" readonly="" step="1" title="自動帶入（員工資料）" type="number" value="0"/>
-</label>
-<label>健保眷保人數（自動帶入）
-            <input id="dependents" min="0" readonly="" step="1" title="自動帶入（員工資料）" type="number" value="0"/>
-</label>
-<label>勞保費率
-            <input id="laborRate" step="0.0001" type="number" value="0.125"/>
-</label>
-<label>健保費率
-            <input id="healthRate" step="0.0001" type="number" value="0.0517"/>
-</label>
-</div>
-<div class="grid two">
-<label>勞保自付額（自動）
-            <input id="laborSelf" readonly="" step="1" type="number" value="0"/>
-</label>
-<label>健保自付額（自動）
-            <input id="healthSelf" readonly="" step="1" type="number" value="0"/>
-</label>
-</div>
-<p class="muted">公式：勞保＝round(保額×勞保費率×20%)；健保＝round(保額×健保費率×30%)×(本人+眷屬，最多4人)。</p>
-</details>
-<div class="divider"></div>
-<details class="full">
-<summary>雇主負擔（公司成本）</summary>
-<div class="grid three" style="margin-top:.5rem">
-<label>勞保雇主（自動，70%）
-            <input id="laborEmployer" readonly="" step="1" type="number" value="0"/>
-</label>
-<label>健保雇主（自動，60%）
-            <input id="healthEmployer" readonly="" step="1" type="number" value="0"/>
-</label>
-<label>勞退費率（預設 6%）
-            <input id="pensionRate" step="0.0001" type="number" value="0.06"/>
-</label>
-<label>勞退（雇主）
-            <input id="pensionEmployer" readonly="" step="1" type="number" value="0"/>
-</label>
-</div>
-<div class="totals">
-<div>雇主負擔小計：<span id="employerTotal">0</span></div>
-<div>公司總成本（應發＋雇主負擔）：<span id="companyCost">0</span></div>
-</div>
-</details>
-<div class="divider"></div>
-<div class="grid two" id="breakdown">
-<div>
-<h3>加項</h3>
-<ul id="plusList"></ul>
-</div>
-<div>
-<h3>扣項</h3>
-<ul id="minusList"></ul>
-</div>
-</div>
-<div class="totals">
-<div>應發小計：<span id="gross">0</span></div>
-<div>應扣小計：<span id="deduct">0</span></div>
-<div class="net">實發：<span id="net">0</span></div>
-</div>
-<div class="actions">
-<button id="btnSave">儲存本月明細</button>
-<button id="exportEmpCsv">匯出此員工本月明細(CSV)</button>
-<button id="printSlip">列印本月明細</button>
-</div>
-</div>
-<div class="card hidden" id="historyCard">
-<h2>本員工歷史紀錄</h2>
-<table id="historyTable">
-<thead>
-<tr>
-<th>月份</th>
-<th>底薪</th>
-<th>全勤</th>
-<th>職務津貼</th>
-<th>技術津貼</th>
-<th>加班</th>
-<th>餐費</th>
-<th>扣薪</th>
-<th>保險</th>
-<th>雇主負擔</th>
-<th>公司成本</th>
-<th>實發</th>
-<th>操作</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-</section>
-</main>
-<footer>
-<small>僅為內部試算，實際薪資以公司制度為準。</small>
-</footer>
-<script src="storage.js"></script>
-<script src="app.js"></script>
+  <div class="card">
+    <div class="header">
+      <div class="h1">益福入口 Portal</div>
+      <div id="statusBadge" class="badge">未登入</div>
+    </div>
+    <div class="body">
+      <div class="panel">
+        <h2>登入(密碼幫你們紀錄完了直接點)</h2>
+        <div class="row">
+          <label class="label">選擇身分</label>
+          <select id="role" class="select">
+            <option value="user">一般使用者</option>
+            <option value="admin">管理員</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label class="label">密碼</label>
+          <input id="pwd" type="password" class="input" placeholder="點一下點儲存的密碼"/>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button id="btnLogin" class="btn btn-accent">登入</button>
+          <button id="btnLogout" class="btn">登出</button>
+        </div>
+        <hr/>
+        <div class="notice">
+         有問題找我別搞</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>要前往哪個網頁？</h2>
+        <div class="grid">
+          <div class="tile" id="gotoYifu">
+            <h3>益福汽車管理系統</h3>
+            <p>進去不要點登出裡面密碼都不一樣(點進去轉圈圈就是我沒開伺服器直接跟我說)。</p>
+          </div>
+          <div class="tile" id="gotoSalary">
+            <h3>薪資計算</h3>
+            <p>你們進不去別點 點了有驚喜。</p>
+          </div>
+        </div>
+        <div style="margin-top:12px" class="notice">
+        有問體找我!!!
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+    有問題找我我在睡覺找老闆
+    </div>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    const YIFU_TARGET = 'http://yifucar.ddns.net:3000';
+    const SALARY_TARGET = 'http://yifucar.ddns.net:3001';
+    const statusBadge = document.getElementById('statusBadge');
+    const roleSel = document.getElementById('role');
+    const pwd = document.getElementById('pwd');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+    const gotoYifu = document.getElementById('gotoYifu');
+    const gotoSalary = document.getElementById('gotoSalary');
+
+    async function refreshStatus(){
+      const cur = await Auth.getCurrent();
+      if(cur.ok){
+        statusBadge.textContent = `已登入：${cur.role==='admin'?'管理員':'一般使用者'}`;
+        statusBadge.className = 'badge';
+      }else{
+        statusBadge.textContent = '未登入';
+        statusBadge.className = 'badge';
+      }
+    }
+    btnLogin.addEventListener('click', async ()=>{
+      const role = roleSel.value;
+      const res = await Auth.loginWithPassword(role, pwd.value);
+      if(!res.ok){
+        alert(res.message || '登入失敗');
+        return;
+      }
+      pwd.value = '';
+      await refreshStatus();
+      alert('登入成功！');
+    });
+    btnLogout.addEventListener('click', ()=>{
+      Auth.logout();
+      refreshStatus();
+      alert('已登出');
+    });
+    gotoYifu.addEventListener('click', async ()=>{
+      const ok = await Auth.requireSignedInOrRedirect();
+      if(!ok) return;
+      const cur = await Auth.getCurrent();
+      const url = `${YIFU_TARGET}/sso/consume?jwt=${encodeURIComponent(cur.token)}&redirect=/`;
+      location.href = url;
+    });
+    gotoSalary.addEventListener('click', async ()=>{
+      const cur = await Auth.getCurrent();
+      if(!cur.ok || cur.role!=='admin'){
+        alert('薪資頁面僅供管理員！請以管理員身分登入。');
+        return;
+      }
+      const cur2 = await Auth.getCurrent();
+      const url2 = `${SALARY_TARGET}/sso/consume?jwt=${encodeURIComponent(cur2.token)}&redirect=/`;
+      location.href = url2;
+    });
+
+    refreshStatus();
+  </script>
+
+    <script>
+    (function(){
+      const gotoSalary = document.getElementById('gotoSalary');
+      if(!gotoSalary) return;
+      gotoSalary.addEventListener('click', async ()=>{
+        const cur2 = await (window.Auth && Auth.getCurrent ? Auth.getCurrent() : Promise.resolve({ok:false}));
+        if(!cur2.ok || cur2.role!=='admin'){
+          location.href = 'https://www.gxgif.com/pic/kb/202328205818.gif';
+          return;
+        }
+        const url2 = `${SALARY_TARGET}/sso/consume?jwt=${encodeURIComponent(cur2.token)}&redirect=/`;
+        location.href = url2;
+      });
+    })();
+    </script>
+    
 </body>
 </html>
