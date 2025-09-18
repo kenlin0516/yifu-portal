@@ -94,16 +94,6 @@ async function getCurrent(){
   return { ok:false };
 }
 
-async function requireAdminOrRedirect(){
-  const cur = await getCurrent();
-  if(!cur.ok || cur.role !== "admin"){
-    alert("只有管理員可以進入此頁面。");
-    location.href = "index.html";
-    return false;
-  }
-  return true;
-}
-
 async function requireSignedInOrRedirect(){
   const cur = await getCurrent();
   if(!cur.ok){
@@ -116,5 +106,5 @@ async function requireSignedInOrRedirect(){
 
 window.Auth = {
   sha256, loginWithPassword, logout, getCurrent,
-  requireAdminOrRedirect, requireSignedInOrRedirect, verifyToken, issueToken
+  requireSignedInOrRedirect, verifyToken, issueToken
 };

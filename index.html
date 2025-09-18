@@ -68,7 +68,6 @@
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
     const gotoYifu = document.getElementById('gotoYifu');
-    const gotoSalary = document.getElementById('gotoSalary');
 
     async function refreshStatus(){
       const cur = await Auth.getCurrent();
@@ -102,16 +101,6 @@
       const cur = await Auth.getCurrent();
       const url = `${YIFU_TARGET}/sso/consume?jwt=${encodeURIComponent(cur.token)}&redirect=/`;
       window.open(url, '_blank', 'noopener,noreferrer');
-    });
-    gotoSalary.addEventListener('click', async ()=>{
-      const cur = await Auth.getCurrent();
-      if(!cur.ok || cur.role!=='admin'){
-        alert('薪資頁面僅供管理員！請以管理員身分登入。');
-        return;
-      }
-      const cur2 = await Auth.getCurrent();
-      const url2 = `${SALARY_TARGET}/sso/consume?jwt=${encodeURIComponent(cur2.token)}&redirect=/`;
-      window.open(url2, '_blank', 'noopener,noreferrer');
     });
 
     refreshStatus();

@@ -1,23 +1,42 @@
+# 益福入口 Portal — SSO 導向版（已移除本地示範頁）
 
-# 益福入口 Portal — GitHub Pages 版
+本入口頁部署在 **GitHub Pages**（純前端），登入後**直接開新分頁**把 JWT 帶到你的兩台外部伺服器的 SSO 端點：
 
-這個資料夾可直接放到 GitHub 倉庫，啟用 GitHub Pages 後即可使用（純前端，無需伺服器）。
+- `{YIFU_TARGET}/sso/consume?jwt=...&redirect=/`
+- `{SALARY_TARGET}/sso/consume?jwt=...&redirect=/`（僅管理員可進）
 
-## 功能
-- 入口頁 `index.html`：登入（前端示範，WebCrypto 於 HTTPS 下可用）、分流到：
-  - `yifu.html`（自動判定目前登入角色並顯示）
-  - `salary.html`（僅管理員可進入）
-- `auth.js`：前端角色驗證與 Token 發行（示範用途）。
+對應的目標位址可在 `index.html` 直接修改兩個常數：
 
-## 部署步驟
-1. 建一個 GitHub repo（公開或私有都可，Pages 用公開最簡單）。
-2. 把本資料夾內的檔案全部放進 repo 根目錄（`index.html` 必須在根目錄）。
-3. 到 **Settings → Pages**：
-   - Source 選擇 `Deploy from a branch`
-   - Branch 選擇 `main`（或 `master`）與 `/ (root)`
-   - 儲存後等它顯示你的網站網址（通常 https://<使用者>.github.io/<repo>/ ）
-4. 造訪該網址即可。
+```html
+const YIFU_TARGET = 'http://yifucar.ddns.net:3000';
+const SALARY_TARGET = 'http://yifucar.ddns.net:3001';
+```
 
-## 注意
-- WebCrypto 僅在「安全環境」可用；GitHub Pages 提供 HTTPS，因此可正常使用。
-- 若要自訂密碼，請修改 `auth.js` 的雜湊值（可在瀏覽器 console 跑 `Auth.sha256('新密碼')` 算出來，貼回 `adminHash` / `userHash`）。
+你的伺服器端需已實作 `/sso/consume`，並與前端 `auth.js` 的 HMAC 密鑰一致（詳見 `README_SSO.md`）。
+
+---
+
+## 目前檔案一覽
+
+- `index.html`：**唯一入口**。登入後以 `window.open()` 開新分頁前往外部伺服器 `/sso/consume`。
+- `auth.js`：前端簡易的角色驗證 / JWT 產生（示範用）。
+- `style.css`：樣式。
+- `README_SSO.md`：SSO 端到端說明。
+- ~~`yifu.html`~~、~~`salary.html`~~：**已刪除**（避免混淆與重複實作）。實際流程**不再使用**這兩頁。
+
+> 本次清理（2025-09-18 04:13）將 `README.md` 從「index → yifu/salary 本地頁」改為「index 直接 SSO」的最新說明。
+
+---
+
+## 部署
+
+1. 建一個 GitHub repo（Pages 開啟 HTTPS）。
+2. 將本資料夾檔案放到 **根目錄**（`index.html` 必須在根目錄）。
+3. **Settings → Pages**：Source 選擇 *Deploy from a branch*；Branch 選 `main` 與 `/ (root)`。
+4. 完成後以顯示的 Pages 網址存取入口頁。
+
+## 自訂
+
+- 調整登入密碼：修改 `auth.js` 的雜湊（可用瀏覽器 console 跑 `Auth.sha256('新密碼')` 取得）。
+- 如需讓一般使用者也能選擇不同目標，可在外部伺服器 `/sso/consume` 讀取自訂 query（或告訴我要哪種行為，我幫你加）。
+
